@@ -8,9 +8,9 @@ Eg below to install a 3 node cluster:
 2. Copy `redis-cluster.sh` script to all machines and run it
 3. On any machine run the below command to create the cluster
 ```
-redis-cli --cluster create [host1]:7000 [host1]:7001 \
-[host2]:7000 [host2]:7001 \ 
-[host3]:7000 [host3]:7001 \
+redis-cli --cluster create [node1]:7000 [node1]:7001 \
+[node2]:7000 [node2]:7001 \ 
+[node3]:7000 [node3]:7001 \
 --cluster-replicas 1
 ```
 
