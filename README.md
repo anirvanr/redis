@@ -1,17 +1,24 @@
+**Setting up a multi-host redis-cluster**
+
 Redis recommendation is to have at least one slave for each master
 - Minimum 3 machines
 - Minimum 3 Redis master nodes on separate machines (sharding)
 - Minimum 3 Redis slaves, 1 slave per master (to allow minimal fail-over mechanism)
 
 Eg below to install a 3 node cluster:
-1. To create a new cluster from scratch, spin up at least 3 ec2 machines
-2. Copy `redis-cluster.sh` script to all machines and run it
-3. On any machine run the below command to create the cluster
+1. To create a new cluster from scratch, spin up at least 3 ec2 hosts
+2. Copy `redis-cluster.sh` script to all hosts and run it
+3. On any host run the below command to create the cluster
 ```
-redis-cli --cluster create [node1]:7000 [node1]:7001 \
-[node2]:7000 [node2]:7001 \ 
-[node3]:7000 [node3]:7001 \
+redis-cli --cluster create [host1]:7000 [host1]:7001 \
+[host2]:7000 [host2]:7001 \ 
+[host3]:7000 [host3]:7001 \
 --cluster-replicas 1
+```
+Verify Redis Cluster
+```
+redis-cli -h [host1|host2|host3] -p 7000 cluster info
+redis-cli -h [host1|host2|host3] -p 7000 cluster nodes
 ```
 
 Links
