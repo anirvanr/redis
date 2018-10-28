@@ -5,6 +5,9 @@ tar xzf redis-5.0.0.tar.gz
 cd redis-5.0.0
 make
 cd utils/create-cluster
+```
+By default, this utility will create 6 nodes with 1 replica and will start creating nodes on port 30000. 
+```
 ./create-cluster start
 ../../src/redis-cli -p 30001 cluster info
 ```
@@ -13,7 +16,6 @@ It should show the cluster_state as failed, and cluster_slots_assigned as 0
 ./create-cluster create
 ```
 Executing "cluster info" after it shows that cluster state is "ok" and cluster_slots_assigned are 16384
-
 
 **2. Setting up a multi-host redis-cluster**
 
