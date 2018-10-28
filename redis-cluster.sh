@@ -3,7 +3,7 @@
 ### CentOS Linux 7 x86_64 HVM EBS ENA 1805_01-b7ee8a69-ee97-4a49-9e68-afaee216db2e-ami-77ec9308.4 (ami-dd3c0f36)
 ### eu-central-1
 
-### Vars ###
+### Script parameters ###
 REDIS_MASTER_PORT="7000"
 REDIS_SLAVE_PORT="7001"
 
@@ -14,7 +14,7 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /etc/rc.local
 echo "sysctl -w net.core.somaxconn=65535" >> /etc/rc.local
 
-### Installing Redis Server ###
+### Installing redis server ###
 yum -y install wget telnet gcc make tcl vim
 wget http://download.redis.io/redis-stable.tar.gz
 tar xvzf redis-stable.tar.gz
