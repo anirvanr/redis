@@ -47,7 +47,9 @@ redis-cli --cluster check [host1|host2|host3]:7000
 Access HAProxy Stats:
 
 URL: http://<haproxy_server_ip>:1936
+
 Login user: admin
+
 Login password: admin
 
 ```
