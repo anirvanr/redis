@@ -40,11 +40,12 @@ frontend redis_frontend
     maxconn 1024
 
 backend redis_servers
-    balance roundrobin
     option tcp-check
     tcp-check connect
     tcp-check send PING\r\n
     tcp-check expect string +PONG
+    tcp-check send info\ replication\r\n
+    tcp-check expect string role:master
     tcp-check send QUIT\r\n
     tcp-check expect string +OK
 EOF
