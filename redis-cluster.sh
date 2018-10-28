@@ -10,7 +10,7 @@ REDIS_SLAVE_PORT="7001"
 ### Basic System Tuning ###
 echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
-echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" > /etc/rc.local
+echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /etc/rc.local
 echo "sysctl -w net.core.somaxconn=65535" >> /etc/rc.local
 
 ### Installing Redis Server ###
