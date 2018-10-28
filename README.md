@@ -1,4 +1,4 @@
-** 1. Creating a Redis Cluster using the create-cluster script**
+**1. Creating a Redis Cluster using the create-cluster script**
 ```
 wget http://download.redis.io/releases/redis-5.0.0.tar.gz
 tar xzf redis-5.0.0.tar.gz
@@ -15,7 +15,7 @@ It should show the cluster_state as failed, and cluster_slots_assigned as 0
 Executing "cluster info" after it shows that cluster state is "ok" and cluster_slots_assigned are 16384
 
 
-** 2. Setting up a multi-host redis-cluster**
+**2. Setting up a multi-host redis-cluster**
 
 Redis recommendation is to have at least one slave for each master
 - Minimum 3 machines
