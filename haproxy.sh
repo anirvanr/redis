@@ -17,7 +17,7 @@ global
     daemon
     stats socket /var/lib/haproxy/stats
 
-listen stats :1936
+listen stats :1947
     mode http
     stats enable
     timeout connect 10s
