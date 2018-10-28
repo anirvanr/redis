@@ -1,3 +1,20 @@
+**Creating a Redis Cluster using the create-cluster script**
+```
+wget http://download.redis.io/releases/redis-5.0.0.tar.gz
+tar xzf redis-5.0.0.tar.gz
+cd redis-5.0.0
+make
+cd utils/create-cluster
+./create-cluster start
+../../src/redis-cli -p 30001 cluster info
+```
+It should show the cluster_state as failed, and cluster_slots_assigned as 0
+```
+./create-cluster create
+```
+Executing "cluster info" after it shows that cluster state is "ok" and cluster_slots_assigned are 16384
+
+
 **Setting up a multi-host redis-cluster**
 
 Redis recommendation is to have at least one slave for each master
@@ -19,6 +36,7 @@ Verify Redis Cluster
 ```
 redis-cli -h [host1|host2|host3] -p 7000 cluster info
 redis-cli -h [host1|host2|host3] -p 7000 cluster nodes
+redis-cli --cluster check [host1|host2|host3]:7000
 ```
 
 Links
