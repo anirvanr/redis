@@ -15,6 +15,7 @@ redis-cli --cluster create [host1]:7000 [host1]:7001 \
 ```
 
 Links
+
 https://codeflex.co/configuring-redis-cluster-on-linux/
 
 http://pingredis.blogspot.com/2016/09/redis-cluster-how-to-create-cluster.html
