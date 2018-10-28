@@ -1,5 +1,8 @@
 #!/bin/bash
 
+### CentOS Linux 7 x86_64 HVM EBS ENA 1805_01-b7ee8a69-ee97-4a49-9e68-afaee216db2e-ami-77ec9308.4 (ami-dd3c0f36)
+### eu-central-1
+
 ### Vars ###
 REDIS_MASTER_PORT="7000"
 REDIS_SLAVE_PORT="7001"
