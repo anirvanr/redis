@@ -40,6 +40,19 @@ redis-cli -h [host1|host2|host3] -p 7000 cluster info
 redis-cli -h [host1|host2|host3] -p 7000 cluster nodes
 redis-cli --cluster check [host1|host2|host3]:7000
 ```
+**1. Redis cluster behind HAProxy**
+```
+./haproxy.sh host1:7000 host1:7001 host2:7000 host2:7001 host3:7000 host3:7001
+```
+Access HAProxy Stats:
+
+URL: http://<haproxy_server_ip>:1936
+Login user: admin
+Login password: admin
+
+```
+./redis-cli -c -h <haproxy_server_ip> -p 5000 get mykey
+```
 
 Links
 
