@@ -7,8 +7,9 @@
 REDIS_MASTER_PORT="7000"
 REDIS_SLAVE_PORT="7001"
 
-### Basic System Tuning ###
+### Basic system tuning ###
 echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
+/sbin/sysctl -p /etc/sysctl.conf
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /etc/rc.local
 echo "sysctl -w net.core.somaxconn=65535" >> /etc/rc.local
@@ -20,7 +21,7 @@ tar xvzf redis-stable.tar.gz
 cd redis-stable
 make && make install
 
-### Configure Redis Server ###
+### Create all essentials directories and copy files to the correct locations ###
 cp src/redis-cli src/redis-server /usr/local/sbin/
 mkdir /{etc,var}/redis
 mkdir /var/redis/{${REDIS_MASTER_PORT},${REDIS_SLAVE_PORT}}
@@ -31,7 +32,7 @@ sed -i -- "s/6379/${REDIS_SLAVE_PORT}/g" /etc/init.d/redis_${REDIS_SLAVE_PORT}
 chkconfig --add redis_${REDIS_MASTER_PORT}
 chkconfig --add redis_${REDIS_SLAVE_PORT}
 
-### Redis Configuration File ###
+### Redis configuration file ###
 for i in {${REDIS_MASTER_PORT},${REDIS_SLAVE_PORT}} ; do
     cat <<- EOF > /etc/redis/$i.conf
     port $i
