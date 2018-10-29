@@ -2,7 +2,7 @@
 
 ### Install HAProxy ###
 yum install haproxy -y
-cd /etc
+cd /etc/haproxy
 cp haproxy.cfg haproxy.cfg.bkp
 
 ### Configure HAProxy ###
