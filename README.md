@@ -55,7 +55,7 @@ Login password: admin
 ```
 ./redis-cli -c -h <haproxy_server_ip> -p 5000 get mykey
 ```
-```
+
 Redis sharded data automatically into the servers.
 Redis has a concept hash slot in order to split data. All the data are divided into slots.
 There are 16384 slots. These slots are divided by the number of servers.
@@ -65,10 +65,13 @@ Node B contains hash slots from 5501 to 11000.
 Node C contains hash slots from 11001 to 16383.
 In our example cluster with nodes A, B, C, if node B fails the cluster is not able to continue, 
 since we no longer have a way to serve hash slots in the range 5501–11000.
-However when the cluster is created we add a slave node to every master, so that the final cluster is composed of A, B, C that are masters nodes, 
+
+However when the cluster is created we add a slave node to every master, 
+so that the final cluster is composed of A, B, C that are masters nodes, 
 and A1, B1, C1 that are slaves nodes, the system is able to continue if node B fails.
+
 Node B1 replicates B, and B fails, the cluster will promote node B1 as the new master and will continue to operate correctly.
-```
+
 
 Links
 
