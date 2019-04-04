@@ -226,6 +226,114 @@ Similarly after node timeout has elapsed without a master node to be able
 to sense the majority of the other master nodes, it enters an error state
 and stops accepting writes.
 
+## Creating a new cluster 
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+make install
+cd /root/redis-stable/utils/create-cluster
+./create-cluster start
+./create-cluster create
+```
+>>> Performing hash slots allocation on 6 nodes...
+Master[0] -> Slots 0 - 5460
+Master[1] -> Slots 5461 - 10922
+Master[2] -> Slots 10923 - 16383
+Adding replica 127.0.0.1:30005 to 127.0.0.1:30001
+Adding replica 127.0.0.1:30006 to 127.0.0.1:30002
+Adding replica 127.0.0.1:30004 to 127.0.0.1:30003
+>>> Trying to optimize slaves allocation for anti-affinity
+[WARNING] Some slaves are in the same host as their master
+M: 1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001
+   slots:[0-5460] (5461 slots) master
+M: 4f78390a5259048c18257f553b001617d6d6ef58 127.0.0.1:30002
+   slots:[5461-10922] (5462 slots) master
+M: 7a3bd800f4145bddefdd293ab0ea5789d6d16700 127.0.0.1:30003
+   slots:[10923-16383] (5461 slots) master
+S: 35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004
+   replicates 7a3bd800f4145bddefdd293ab0ea5789d6d16700
+S: 556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005
+   replicates 1552eb85bfede2e0cea00a06d1934aa54610b13d
+S: 91a2b4fc132cb0f4f134d33b2482cf34c71346f7 127.0.0.1:30006
+   replicates 4f78390a5259048c18257f553b001617d6d6ef58
+   ```
+
+redis-cli -p 30001 cluster slots
+```
+1) 1) (integer) 10923
+   2) (integer) 16383
+   3) 1) "127.0.0.1"
+      2) (integer) 30003
+      3) "7a3bd800f4145bddefdd293ab0ea5789d6d16700"
+   4) 1) "127.0.0.1"
+      2) (integer) 30004
+      3) "35cbb2635ea17d40ea4c6b16842f191b014ef9f9"
+2) 1) (integer) 5461
+   2) (integer) 10922
+   3) 1) "127.0.0.1"
+      2) (integer) 30002
+      3) "4f78390a5259048c18257f553b001617d6d6ef58"
+   4) 1) "127.0.0.1"
+      2) (integer) 30006
+      3) "91a2b4fc132cb0f4f134d33b2482cf34c71346f7"
+3) 1) (integer) 0
+   2) (integer) 5460
+   3) 1) "127.0.0.1"
+      2) (integer) 30001
+      3) "1552eb85bfede2e0cea00a06d1934aa54610b13d"
+   4) 1) "127.0.0.1"
+      2) (integer) 30005
+      3) "556a95431cb2eb84431b884c67e80d5edabee8e2"
+   ```
+ 
+ The `redis-cli` utility in the unstable branch of the Redis repository at GitHub implements a very basic cluster support when started with the `-c` switch
+   
+redis-cli -c -h localhost -p 30001
+```
+localhost:30001> SET hello world
+OK
+localhost:30001> SET foo bar
+-> Redirected to slot [12182] located at 127.0.0.1:30003
+OK
+127.0.0.1:30003>
+127.0.0.1:30003> GET foo
+"bar"
+127.0.0.1:30003> GET hello
+-> Redirected to slot [866] located at 127.0.0.1:30001
+"world"
+127.0.0.1:30001>
+```
+localhost:30001> CLUSTER NODES
+```
+7a3bd800f4145bddefdd293ab0ea5789d6d16700 127.0.0.1:30003@40003 master - 0 1554361697988 3 connected 10923-16383
+4f78390a5259048c18257f553b001617d6d6ef58 127.0.0.1:30002@40002 master - 0 1554361697087 2 connected 5461-10922
+556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005@40005 slave 1552eb85bfede2e0cea00a06d1934aa54610b13d 0 1554361697388 5 connected
+91a2b4fc132cb0f4f134d33b2482cf34c71346f7 127.0.0.1:30006@40006 slave 4f78390a5259048c18257f553b001617d6d6ef58 0 1554361697087 6 connected
+35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554361697000 4 connected
+1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 myself,master - 0 1554361696000 1 connected 0-5460
+```
+## Manual failover
+
+Sometimes it is useful to force a failover without actually causing any problem on a master. That must be executed in one of the **slaves** of the master you want to failover.
+
+redis-cli -h localhost -p 30005
+```
+localhost:30005> CLUSTER FAILOVER
+OK
+localhost:30005> CLUSTER NODES
+35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554362622379 4 connected
+7a3bd800f4145bddefdd293ab0ea5789d6d16700 127.0.0.1:30003@40003 master - 0 1554362622079 3 connected 10923-16383
+556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005@40005 myself,master - 0 1554362622000 7 connected 0-5460
+4f78390a5259048c18257f553b001617d6d6ef58 127.0.0.1:30002@40002 master - 0 1554362622079 2 connected 5461-10922
+91a2b4fc132cb0f4f134d33b2482cf34c71346f7 127.0.0.1:30006@40006 slave 4f78390a5259048c18257f553b001617d6d6ef58 0 1554362622079 6 connected
+1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 slave 556a95431cb2eb84431b884c67e80d5edabee8e2 0 1554362622079 7 connected
+```
+## Removing a node to an existing Cluster
+`CLUSTER FORGET` is used in order to remove a node, specified via its node ID.
+Make sure to send CLUSTER FORGET to every single node in the cluster.
+`CLUSTER FORGET 35cbb2635ea17d40ea4c6b16842f191b014ef9f9`
+
 
 Links
 
