@@ -72,7 +72,51 @@ and A1, B1, C1 that are slaves nodes, the system is able to continue if node B f
 
 Node B1 replicates B, and B fails, the cluster will promote node B1 as the new master and will continue to operate correctly.
 
-The directive `cluster-enabled` is used to determine whether Redis will run in cluster mode or not. But by default, it is no. You need to change it to yes to enable cluster mode.Redis Cluster requires a configuration file path to store changes that happen to the cluster. This file path should not be created or edited by humans. The directive that sets this file path is `cluster-config-file`. Redis is responsible for creating this file with all of the cluster information, such as all the nodes in a cluster, their state, and persistence variables. This file is rewritten whenever there is any change in the cluster.The maximum amount of time for which a node can be unavailable without being considered as failing is specified by the directive `cluster-node-timeout` (this value is in milliseconds). If a node is not reachable for the specified amount of time by the majority of master nodes, it will be considered as failing. If that node is a master, a failover to one of its slaves will occur. If it is a slave, it will stop accepting queries.Sometimes, network failures happen, and when they happen, it is always a good idea to minimize problems. If network issues are happening and nodes cannot communicate well, it is possible that the majority of nodes think that a given master is down and so a failover procedure should start. If the network only had a hiccup, the failover procedure might have been unnecessary. There is a configuration directive that helps minimize these kinds of problems. The directive is `cluster-slave-validity-factor`, and it expects a factor. By default, the factor is 10. If there is a network issue and a master node cannot communicate well with other nodes for a certain amount of time (cluster-node-timeout multiplied by cluster-slave-validity-factor), no slaves will be promoted to replace that master. When the connection issues go away and the master node is able to communicate well with others again, if it becomes unreachable a failover will happen.
+Every Redis Cluster node requires two TCP connections open. The normal Redis
+TCP port used to serve clients, for example 6379, plus the port obtained by
+adding 10000 to the data port, so 16379 in the example.
+
+This second *high* port is used for the Cluster bus, that is a node-to-node
+communication channel using a binary protocol. The Cluster bus is used by
+nodes for failure detection, configuration update, failover authorization
+and so forth. Clients should never try to communicate with the cluster bus
+port, but always with the normal Redis command port, however make sure you
+open both ports in your firewall, otherwise Redis cluster nodes will be
+not able to communicate.
+
+The command port and cluster bus port offset is fixed and is always 10000.
+
+Note that for a Redis Cluster to work properly you need, for each node:
+
+1. The normal client communication port (usually 6379) used to communicate with clients to be open to all the clients that need to reach the cluster, plus all the other cluster nodes (that use the client port for keys migrations).
+2. The cluster bus port (the client port + 10000) must be reachable from all the other cluster nodes.
+
+If you don't open both TCP ports, your cluster will not work as expected.
+
+The cluster bus uses a different, binary protocol, for node to node data
+exchange, which is more suited to exchange information between nodes using
+little bandwidth and processing time.
+
+
+The directive `cluster-enabled` is used to determine whether Redis will run in cluster mode or not. 
+But by default, it is no. You need to change it to yes to enable cluster mode.
+
+Redis Cluster requires a configuration file path to store changes that happen to the cluster. 
+This file path should not be created or edited by humans. The directive that sets this 
+file path is `cluster-config-file`. Redis is responsible for creating this file with 
+all of the cluster information, such as all the nodes in a cluster, their state, and persistence variables. 
+This file is rewritten whenever there is any change in the cluster.
+The maximum amount of time for which a node can be unavailable without being considered as failing is specified by the directive `cluster-node-timeout` (this value is in milliseconds). 
+If a node is not reachable for the specified amount of time by the majority of master nodes, it will be considered as failing. If that node is a master, a failover to one of its slaves will occur. 
+If it is a slave, it will stop accepting queries.Sometimes, network failures happen, and when they happen, 
+it is always a good idea to minimize problems. If network issues are happening and nodes cannot communicate well, 
+it is possible that the majority of nodes think that a given master is down and so a failover procedure should start. 
+If the network only had a hiccup, the failover procedure might have been unnecessary. 
+There is a configuration directive that helps minimize these kinds of problems. 
+The directive is `cluster-slave-validity-factor`, and it expects a factor. 
+By default, the factor is 10. If there is a network issue and a master node cannot communicate well 
+with other nodes for a certain amount of time (cluster-node-timeout multiplied by cluster-slave-validity-factor), 
+no slaves will be promoted to replace that master. When the connection issues go away and the master node is able to communicate well with others again, if it becomes unreachable a failover will happen.
 
 Links
 
