@@ -313,27 +313,6 @@ localhost:30001> CLUSTER NODES
 35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554361697000 4 connected
 1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 myself,master - 0 1554361696000 1 connected 0-5460
 ```
-## Manual failover
-
-Sometimes it is useful to force a failover without actually causing any problem on a master. That must be executed in one of the **slaves** of the master you want to failover.
-
-redis-cli -h localhost -p 30005
-```
-localhost:30005> CLUSTER FAILOVER
-OK
-localhost:30005> CLUSTER NODES
-35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554362622379 4 connected
-7a3bd800f4145bddefdd293ab0ea5789d6d16700 127.0.0.1:30003@40003 master - 0 1554362622079 3 connected 10923-16383
-556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005@40005 myself,master - 0 1554362622000 7 connected 0-5460
-4f78390a5259048c18257f553b001617d6d6ef58 127.0.0.1:30002@40002 master - 0 1554362622079 2 connected 5461-10922
-91a2b4fc132cb0f4f134d33b2482cf34c71346f7 127.0.0.1:30006@40006 slave 4f78390a5259048c18257f553b001617d6d6ef58 0 1554362622079 6 connected
-1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 slave 556a95431cb2eb84431b884c67e80d5edabee8e2 0 1554362622079 7 connected
-```
-## Removing a node to an existing Cluster
-`CLUSTER FORGET` is used in order to remove a node, specified via its node ID.
-Make sure to send CLUSTER FORGET to every single node in the cluster.
-`CLUSTER FORGET 35cbb2635ea17d40ea4c6b16842f191b014ef9f9`
-
 
 Links
 
