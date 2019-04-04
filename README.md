@@ -118,6 +118,45 @@ By default, the factor is 10. If there is a network issue and a master node cann
 with other nodes for a certain amount of time (cluster-node-timeout multiplied by cluster-slave-validity-factor), 
 no slaves will be promoted to replace that master. When the connection issues go away and the master node is able to communicate well with others again, if it becomes unreachable a failover will happen.
 
+Redis Cluster data sharding
+---
+
+Redis Cluster does not use consistent hashing, but a different form of sharding
+where every key is conceptually part of what we call an **hash slot**.
+
+There are 16384 hash slots in Redis Cluster, and to compute what is the hash
+slot of a given key, we simply take the CRC16 of the key modulo
+16384.
+
+Every node in a Redis Cluster is responsible for a subset of the hash slots,
+so for example you may have a cluster with 3 nodes, where:
+
+* Node A contains hash slots from 0 to 5500.
+* Node B contains hash slots from 5501 to 11000.
+* Node C contains hash slots from 11001 to 16383.
+
+This allows to add and remove nodes in the cluster easily. For example if
+I want to add a new node D, I need to move some hash slot from nodes A, B, C
+to D. Similarly if I want to remove node A from the cluster I can just
+move the hash slots served by A to B and C. When the node A will be empty
+I can remove it from the cluster completely.
+
+Because moving hash slots from a node to another does not require to stop
+operations, adding and removing nodes, or changing the percentage of hash
+slots hold by nodes, does not require any downtime.
+
+Redis Cluster supports multiple key operations as long as all the keys involved
+into a single command execution (or whole transaction, or Lua script
+execution) all belong to the same hash slot. The user can force multiple keys
+to be part of the same hash slot by using a concept called *hash tags*.
+
+Hash tags are documented in the Redis Cluster specification, but the gist is
+that if there is a substring between {} brackets in a key, only what is
+inside the string is hashed, so for example `this{foo}key` and `another{foo}key`
+are guaranteed to be in the same hash slot, and can be used together in a
+command with multiple keys as arguments.
+
+
 Links
 
 https://codeflex.co/configuring-redis-cluster-on-linux/
