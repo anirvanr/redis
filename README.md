@@ -1,3 +1,11 @@
+Redis (REmote DIctionary Server) is a popular open-source, in-memory data store that supports a wide array of data structures in addition to simple key-value pairs.
+
+Redis stores everything in primary memory. Because primary memory is volatile, you lose all your stored data when you restart your Redis server. Therefore, you need a way for the data to persist. Redis can persist data by using a Redis Database File (RDB) or an Append Only File (AOF).
+
+RDB is a snapshot-style persistence format, which copies all the data in memory and stores the copies in secondary storage. This happens at specified intervals, so you could lose data that is set after RDB’s last snapshot.
+
+AOF is a change-log-style persistence format, which logs all the write operations received by the server. Therefore, every operation is persisted. The problem with using AOF is that it writes to disk for every operation and it's an expensive task. Also the size of the AOF file is larger than the RDB file.
+
 **1. Creating a Redis Cluster using the create-cluster script**
 ```
 wget http://download.redis.io/releases/redis-5.0.0.tar.gz
