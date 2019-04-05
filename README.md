@@ -313,6 +313,184 @@ localhost:30001> CLUSTER NODES
 35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554361697000 4 connected
 1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 myself,master - 0 1554361696000 1 connected 0-5460
 ```
+### Creating a cluster
+In this section, a cluster with three masters will be created.
+```
+$ redis-server --port 5000 --cluster-enabled yes --cluster-config-file nodes-5000.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-5000.rdb --daemonize yes
+
+$ redis-server --port 5001 --cluster-enabled yes --cluster-config-file nodes-5001.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-5001.rdb --daemonize yes
+
+$ redis-server --port 5002 --cluster-enabled yes --cluster-config-file nodes-5002.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-5002.rdb --daemonize yes
+```
+The cluster is not ready to run yet. We can check the cluster's health with the CLUSTER INFO command.
+```
+$ redis-cli -c -p 5000 CLUSTER INFO
+cluster_state:fail
+cluster_slots_assigned:0
+cluster_slots_ok:0
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:1
+cluster_size:0
+cluster_current_epoch:0
+cluster_my_epoch:0
+cluster_stats_messages_sent:0
+cluster_stats_messages_received:0
+```
+The output of CLUSTER INFO tells us that the cluster only knows about one node (the connected node), no slots are assigned to any of the nodes, and the cluster state is fail.When the cluster is in the fail state, it cannot process any queries.
+
+Next, the 16,384 hash slots are distributed evenly across the three instances. The configuration cluster-require-full-coverage is set to yes, which means that the cluster can process queries only if all hash slots are assigned to running instances:
+```
+$ redis-cli -c -p 5000 CLUSTER ADDSLOTS {0..5460}
+$ redis-cli -c -p 5001 CLUSTER ADDSLOTS {5461..10922}
+$ redis-cli -c -p 5002 CLUSTER ADDSLOTS {10923..16383}
+```
+
+Next, we are going to make all the nodes aware of each other. We will do this using the command CLUSTER MEET:
+```
+$ redis-cli -c -p 5000 CLUSTER MEET 127.0.0.1 5001
+$ redis-cli -c -p 5000 CLUSTER MEET 127.0.0.1 5002
+```
+Run the command CLUSTER INFO to see that the cluster is up and running.
+```
+$ redis-cli -c -p 5000 CLUSTER NODES
+b022a1de8d70f02b486a6f337dedb2f286b201ba 127.0.0.1:5002 master - 0 1554371348856 0 connected 10923-16383
+a384db79274d15c6b4185070e3b96c55ce6e2c78 127.0.0.1:5001 master - 0 1554371348856 2 connected 5461-10922
+956802b140f0e1789db2c521854c5dfb068bde62 127.0.0.1:5000 myself,master - 0 0 1 connected 0-5460
+
+$ redis-cli -c -p 5000
+127.0.0.1:5000> SET hello world
+OK
+127.0.0.1:5000> SET foo bar
+-> Redirected to slot [12182] located at 127.0.0.1:5002
+OK
+```
+Adding slaves/replicas:
+
+There are three master nodes but no slaves. Thus, no data is replicated anywhere. This is not very safe. Data can be lost, and if any master has issues, the entire cluster will be unavailable (cluster-require-full-coverage is set to yes).
+```
+$ redis-server --port 5003 --cluster-enabled yes --cluster-config-file nodes-5003.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-5003.rdb --daemonize yes
+```
+
+Introduce it to the current cluster using the command CLUSTER MEET:
+`$ redis-cli -c -p 5003 CLUSTER MEET 127.0.0.1 5000`
+
+Getting the node ID of the master that will be replicated using the command CLUSTER NODES
+```
+$ redis-cli -c -p 5003 CLUSTER NODES
+b022a1de8d70f02b486a6f337dedb2f286b201ba 127.0.0.1:5002 master - 0 1554439429689 0 connected 10923-16383
+a384db79274d15c6b4185070e3b96c55ce6e2c78 127.0.0.1:5001 master - 0 1554439429689 2 connected 5461-10922
+956802b140f0e1789db2c521854c5dfb068bde62 127.0.0.1:5000 master - 0 1554439429689 1 connected 0-5460
+0aa674dab686c6410ea2638c7e69aab8fbf67c66 127.0.0.1:5003 myself,master - 0 0 3 connected
+
+$ redis-cli -c -p 5003 CLUSTER REPLICATE b022a1de8d70f02b486a6f337dedb2f286b201ba
+
+$ redis-cli -c -p 5003 CLUSTER NODES
+b022a1de8d70f02b486a6f337dedb2f286b201ba 127.0.0.1:5002 master - 0 1554439629163 0 connected 10923-16383
+a384db79274d15c6b4185070e3b96c55ce6e2c78 127.0.0.1:5001 master - 0 1554439629264 2 connected 5461-10922
+956802b140f0e1789db2c521854c5dfb068bde62 127.0.0.1:5000 master - 0 1554439629264 1 connected 0-5460
+0aa674dab686c6410ea2638c7e69aab8fbf67c66 127.0.0.1:5003 myself,slave b022a1de8d70f02b486a6f337dedb2f286b201ba 0 0 3 connected
+```
+### Redis cluster live reshard
+Check slot 866 located at 127.0.0.1:5000 before resharding
+```
+$ redis-cli -c -p 5001
+127.0.0.1:5001> get hello
+-> Redirected to slot [866] located at 127.0.0.1:5000
+"world"
+```
+
+Generate 10 random key 
+```bash
+for i in {1..10} ; do redis-cli -c -p 5000 set key$i `head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13 ; echo ''` ; done
+```
+
+Create a new Redis instance in cluster mode:
+```
+$ redis-server --port 6000 --cluster-enabled yes --cluster-config-file nodes-6000.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-6000.rdb --daemonize yes
+```
+
+Introduce the node to the cluster:
+```
+$ redis-cli -c -p 6000 CLUSTER MEET 127.0.0.1 5000
+```
+
+Find the node IDs of the new node and the destination node
+```
+$ redis-cli -c -p 6000 CLUSTER NODES
+...
+865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4 127.0.0.1:6000 myself,master - 0 0 4 connected
+956802b140f0e1789db2c521854c5dfb068bde62 127.0.0.1:5000 master - 0 1554442600741 1 connected 0-5460
+...
+```
+Suppose you want to reshard some slots from a master node to other master node.  We'll call the node that has the current ownership of the hash slot the source node, and the node where we want to migrate the destination node.
+Redis Cluster only supports resharding of one hash slot at a time.
+If many hash slots have to be resharded, the following procedure needs to be executed once for each hash slot:
+
+1. Send CLUSTER SETSLOT <slot> IMPORTING <source-node-id> to destination node to set the slot to importing state.
+```
+$ redis-cli -c -p 6000 CLUSTER SETSLOT 866 IMPORTING 956802b140f0e1789db2c521854c5dfb068bde62
+```
+
+2. Send CLUSTER SETSLOT <slot> MIGRATING <destination-node-id> to source node to set the slot to migrating state.
+```
+$ redis-cli -c -p 5000 CLUSTER SETSLOT 866 MIGRATING 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+```
+3. Get keys from the source node with CLUSTER GETKEYSINSLOT command and move them into the destination node using the following MIGRATE command.
+MIGRATE target_host target_port key target_database_id timeout
+
+NOTE:
+CLUSTER COUNTKEYSINSLOT <slot> returns the number of keys in a given slot.
+CLUSTER GETKEYSINSLOT <slot><amount> returns an array with key names that belong to a slot based on the amount specified
+```
+$ redis-cli -c -p 5000
+127.0.0.1:5000> CLUSTER COUNTKEYSINSLOT 866
+(integer) 1
+127.0.0.1:5000> CLUSTER GETKEYSINSLOT 866 1
+1) "hello"
+127.0.0.1:5000> MIGRATE 127.0.0.1 6000 hello 0 2000
+```
+4. Finally, all the nodes are notified about the new owner of the hash slot:
+```
+$ redis-cli -c -p 5000 CLUSTER SETSLOT 866 NODE 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4 
+$ redis-cli -c -p 5001 CLUSTER SETSLOT 866 NODE 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+$ redis-cli -c -p 5002 CLUSTER SETSLOT 866 NODE 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+$ redis-cli -c -p 6000 CLUSTER SETSLOT 866 NODE 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+```
+The new assignment can be checked with CLUSTER NODES
+```
+$ redis-cli -c -p 6000 CLUSTER NODES
+```
+
+bash script to migrate all hash slots(0-5460) from master on port 5000 to master on port 6000
+```bash
+#!/bin/bash
+
+for i in `seq 0 5460`; do
+    redis-cli -c -p 6000 cluster setslot ${i} importing 956802b140f0e1789db2c521854c5dfb068bde62
+    redis-cli -c -p 5000 cluster setslot ${i} migrating 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+    while true; do
+        key=`redis-cli -c -p 5000 cluster getkeysinslot ${i} 1`
+        if [ "" = "$key" ]; then
+            echo "there are no key in this slot ${i}"
+            break
+        fi
+        redis-cli -p 5000 migrate 127.0.0.1 6000 ${key} 0 2000
+    done
+    redis-cli -c -p 5000 cluster setslot ${i} node 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+    redis-cli -c -p 5001 cluster setslot ${i} node 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+    redis-cli -c -p 5002 cluster setslot ${i} node 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+    redis-cli -c -p 6000 cluster setslot ${i} node 865de4b342b04ed20ae7a6a4e60eb8f8f5f46bd4
+done
+```
+Check slot 866 located at 127.0.0.1:6000 after resharding
+```
+$ redis-cli -c -p 5001
+127.0.0.1:5001> get hello
+-> Redirected to slot [866] located at 127.0.0.1:6000
+"world"
+127.0.0.1:6000>
+```
 
 Links
 
