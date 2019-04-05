@@ -494,16 +494,10 @@ $ redis-cli -c -p 5001
 
 Links
 
-https://codeflex.co/configuring-redis-cluster-on-linux/
-
-http://pingredis.blogspot.com/2016/09/redis-cluster-how-to-create-cluster.html
-
-https://redis.io/topics/cluster-tutorial
-
-https://docs.bitnami.com/installer/apps/diaspora/administration/create-cluster/
-
-https://community.pivotal.io/s/article/How-to-setup-HAProxy-and-Redis-Sentinel-for-automatic-failover-between-Redis-Master-and-Slave-servers
-
-https://alex.dzyoba.com/blog/redis-cluster/
-
+https://codeflex.co/configuring-redis-cluster-on-linux/ </br>
+http://pingredis.blogspot.com/2016/09/redis-cluster-how-to-create-cluster.html </br>
+https://redis.io/topics/cluster-tutorial </br>
+https://docs.bitnami.com/installer/apps/diaspora/administration/create-cluster/ </br>
+https://community.pivotal.io/s/article/How-to-setup-HAProxy-and-Redis-Sentinel-for-automatic-failover-between-Redis-Master-and-Slave-servers </br>
+https://alex.dzyoba.com/blog/redis-cluster/ </br>
 https://willwarren.com/2017/10/redis-cluster-cheatsheet/
