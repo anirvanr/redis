@@ -227,14 +227,15 @@ to sense the majority of the other master nodes, it enters an error state
 and stops accepting writes.
 
 ## Creating a Redis Cluster using the create-cluster script
-wget http://download.redis.io/redis-stable.tar.gz</br>
-tar xvzf redis-stable.tar.gz</br>
-cd redis-stable</br>
-make</br>
-make install</br>
-cd /root/redis-stable/utils/create-cluster</br>
-./create-cluster start</br>
-./create-cluster create</br>
+```bash
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+make install
+cd /root/redis-stable/utils/create-cluster
+./create-cluster start
+./create-cluster create
 ```
 >>> Performing hash slots allocation on 6 nodes...
 Master[0] -> Slots 0 - 5460
