@@ -226,7 +226,7 @@ Similarly after node timeout has elapsed without a master node to be able
 to sense the majority of the other master nodes, it enters an error state
 and stops accepting writes.
 
-## Creating a new cluster 
+## Creating a Redis Cluster using the create-cluster script
 wget http://download.redis.io/redis-stable.tar.gz</br>
 tar xvzf redis-stable.tar.gz</br>
 cd redis-stable</br>
@@ -313,7 +313,7 @@ localhost:30001> CLUSTER NODES
 35cbb2635ea17d40ea4c6b16842f191b014ef9f9 127.0.0.1:30004@40004 slave 7a3bd800f4145bddefdd293ab0ea5789d6d16700 0 1554361697000 4 connected
 1552eb85bfede2e0cea00a06d1934aa54610b13d 127.0.0.1:30001@40001 myself,master - 0 1554361696000 1 connected 0-5460
 ```
-### Creating a cluster
+### Creating a Redis Cluster manually
 In this section, a cluster with three masters will be created.
 ```
 $ redis-server --port 5000 --cluster-enabled yes --cluster-config-file nodes-5000.conf --cluster-node-timeout 2000 --cluster-slave-validity-factor 10 --cluster-migration-barrier 1 --cluster-require-full-coverage yes --dbfilename dump-5000.rdb --daemonize yes
