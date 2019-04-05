@@ -6,6 +6,18 @@ RDB is a snapshot-style persistence format, which copies all the data in memory 
 
 AOF is a change-log-style persistence format, which logs all the write operations received by the server. Therefore, every operation is persisted. The problem with using AOF is that it writes to disk for every operation and it's an expensive task. Also the size of the AOF file is larger than the RDB file.
 
+Backup and restore:
+
+127.0.0.1:6000> SAVE
+This command will create a dump.rdb file in your Redis directory.
+
+To restore Redis data, move Redis backup file (dump.rdb) into your Redis directory and start the server .
+To get your Redis directory, use CONFIG command of Redis as shown below.
+
+127.0.0.1:6000> CONFIG get dir  
+1) "dir" 
+2) "/user/tutorialspoint/redis-2.8.13/src"
+
 **1. Creating a Redis Cluster using the create-cluster script**
 ```
 wget http://download.redis.io/releases/redis-5.0.0.tar.gz
