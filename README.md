@@ -236,7 +236,7 @@ make install
 cd /root/redis-stable/utils/create-cluster
 ./create-cluster start
 ./create-cluster create
-```
+
 >>> Performing hash slots allocation on 6 nodes...
 Master[0] -> Slots 0 - 5460
 Master[1] -> Slots 5461 - 10922
@@ -258,9 +258,9 @@ S: 556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005
    replicates 1552eb85bfede2e0cea00a06d1934aa54610b13d
 S: 91a2b4fc132cb0f4f134d33b2482cf34c71346f7 127.0.0.1:30006
    replicates 4f78390a5259048c18257f553b001617d6d6ef58
-   ```
+ ```
 
-redis-cli -p 30001 cluster slots
+$ redis-cli -p 30001 cluster slots
 ```
 1) 1) (integer) 10923
    2) (integer) 16383
@@ -290,7 +290,7 @@ redis-cli -p 30001 cluster slots
  
  The `redis-cli` utility in the unstable branch of the Redis repository at GitHub implements a very basic cluster support when started with the `-c` switch
    
-redis-cli -c -h localhost -p 30001
+$ redis-cli -c -h localhost -p 30001
 ```
 localhost:30001> SET hello world
 OK
@@ -304,9 +304,8 @@ OK
 -> Redirected to slot [866] located at 127.0.0.1:30001
 "world"
 127.0.0.1:30001>
-```
 localhost:30001> CLUSTER NODES
-```
+
 7a3bd800f4145bddefdd293ab0ea5789d6d16700 127.0.0.1:30003@40003 master - 0 1554361697988 3 connected 10923-16383
 4f78390a5259048c18257f553b001617d6d6ef58 127.0.0.1:30002@40002 master - 0 1554361697087 2 connected 5461-10922
 556a95431cb2eb84431b884c67e80d5edabee8e2 127.0.0.1:30005@40005 slave 1552eb85bfede2e0cea00a06d1934aa54610b13d 0 1554361697388 5 connected
